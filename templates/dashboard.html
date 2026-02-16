@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="text-center mb-5">
+    <h2 class="hero-title">Welcome to Your Dashboard</h2>
+    <p class="hero-subtitle">Manage your AI-generated content and processing history</p>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-6 mb-4">
+        <div class="glass-card p-4 text-center h-100">
+            <i class="bi bi-upload display-4 text-info mb-3"></i>
+            <h5 class="section-title">Upload New Image</h5>
+            <p class="result-text">Start processing a new image with AI captioning, translation, and speech synthesis.</p>
+            <a href="{% url 'upload' %}" class="btn btn-lg glow-btn px-4">Upload Image</a>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="glass-card p-4 text-center h-100">
+            <i class="bi bi-clock-history display-4 text-success mb-3"></i>
+            <h5 class="section-title">Processing History</h5>
+            <p class="result-text">View all your previous image processing results and generated content.</p>
+            <a href="{% url 'history' %}" class="btn btn-lg glow-btn px-4">View History</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

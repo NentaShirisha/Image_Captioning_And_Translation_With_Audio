@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="text-center mb-5">
+    <h1 class="hero-title">Join AI Vision Studio</h1>
+    <p class="hero-subtitle">Create your account to start transforming images into intelligent stories</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-card p-5">
+            <div class="text-center mb-4">
+                <i class="bi bi-person-plus display-4 text-success mb-3"></i>
+                <h3 class="section-title">Create Account</h3>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="id_username" class="form-label fw-bold">Username</label>
+                    <input type="text" name="username" class="form-control form-control-lg"
+                           id="id_username" value="{{ form.username.value|default:'' }}"
+                           placeholder="Choose a username" required>
+                    {% if form.username.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_password1" class="form-label fw-bold">Password</label>
+                    <input type="password" name="password1" class="form-control form-control-lg"
+                           id="id_password1" placeholder="Create a strong password" required>
+                    {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.password1.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_password2" class="form-label fw-bold">Confirm Password</label>
+                    <input type="password" name="password2" class="form-control form-control-lg"
+                           id="id_password2" placeholder="Confirm your password" required>
+                    {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.password2.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-lg glow-btn w-100 mb-3">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="text-center">
+                <p class="result-text mb-2">Already have an account?</p>
+                <a href="{% url 'login' %}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

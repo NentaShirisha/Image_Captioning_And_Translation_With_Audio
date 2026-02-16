@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="text-center mb-5">
+    <h2 class="hero-title">Your Processing History</h2>
+    <p class="hero-subtitle">View all your AI-generated captions and translations</p>
+</div>
+
+<div class="text-center mb-4">
+    <a href="{% url 'dashboard' %}" class="btn btn-lg glow-btn px-4">
+        <i class="bi bi-upload"></i> Upload New Image
+    </a>
+</div>
+
+{% if history %}
+    <div class="row">
+        {% for item in history %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="glass-card h-100">
+                <div class="row g-0">
+                    <div class="col-md-5">
+                        <img src="{{ item.image.url }}" class="card-img-top h-100 rounded-start" alt="Uploaded image" style="object-fit: cover; min-height: 150px;">
+                    </div>
+                    <div class="col-md-7">
+                        <div class="card-body d-flex flex-column h-100">
+                            <div class="flex-grow-1">
+                                <h6 class="section-title text-truncate mb-2" title="{{ item.caption }}">
+                                    <i class="bi bi-chat-quote text-info me-1"></i> {{ item.caption|truncatechars:50 }}
+                                </h6>
+                                <h6 class="text-info small mb-2">
+                                    <i class="bi bi-translate me-1"></i> {{ item.language|upper }}
+                                </h6>
+                                <p class="result-text small mb-3" title="{{ item.translated_text }}">
+                                    {{ item.translated_text|truncatechars:60 }}
+                                </p>
+                                {% if item.audio_file %}
+                                    <div class="mt-2">
+                                        <audio controls class="w-100 custom-audio" style="height: 30px;">
+                                            <source src="{{ item.audio_file.url }}" type="audio/mpeg">
+                                        </audio>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-auto">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-event me-1"></i> {{ item.created_at|date:"M d, H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="glass-card p-5 text-center">
+        <i class="bi bi-clock-history display-1 text-muted mb-4"></i>
+        <h4 class="section-title mb-3">No History Yet</h4>
+        <p class="result-text">Start by uploading an image to generate your first AI caption!</p>
+        <a href="{% url 'dashboard' %}" class="btn btn-lg glow-btn px-4 mt-3">
+            <i class="bi bi-upload me-2"></i> Upload Your First Image
+        </a>
+    </div>
+{% endif %}
+
+<style>
+.card-img-top {
+    border-radius: 0.375rem 0 0 0.375rem;
+}
+
+@media (max-width: 768px) {
+    .card .row {
+        flex-direction: column;
+    }
+
+    .card-img-top {
+        border-radius: 0.375rem 0.375rem 0 0;
+        max-height: 200px;
+    }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="text-center mb-5">
+    <h1 class="hero-title">Welcome Back</h1>
+    <p class="hero-subtitle">Sign in to access your AI Vision Studio</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-card p-5">
+            <div class="text-center mb-4">
+                <i class="bi bi-person-circle display-4 text-info mb-3"></i>
+                <h3 class="section-title">Login</h3>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="id_username" class="form-label fw-bold">Username</label>
+                    <input type="text" name="username" id="id_username" class="form-control form-control-lg"
+                           placeholder="Enter your username" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_password" class="form-label fw-bold">Password</label>
+                    <input type="password" name="password" id="id_password" class="form-control form-control-lg"
+                           placeholder="Enter your password" required>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger border-0" style="background: rgba(220, 53, 69, 0.1); color: #ff6b7d;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Error:</strong> Invalid username or password.
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-lg glow-btn w-100 mb-3">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </button>
+            </form>
+
+            <div class="text-center">
+                <p class="result-text mb-2">Don't have an account?</p>
+                <a href="{% url 'register' %}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-person-plus me-1"></i>Create Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
