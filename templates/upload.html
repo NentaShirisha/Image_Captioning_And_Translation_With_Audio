@@ -12,7 +12,6 @@
     <form id="uploadForm" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <!-- Drag Drop -->
         <div class="drop-zone mb-4" id="dropZone">
             <i class="bi bi-cloud-arrow-up upload-icon"></i>
             <p>Drag & Drop Image or Click to Upload</p>
@@ -20,10 +19,14 @@
             <img id="imagePreview" class="img-fluid mt-3 d-none rounded" style="max-height: 200px;" />
         </div>
 
-        <!-- Language Selector -->
         <div class="language-selector mt-4 mb-4">
-            <label for="languageSelect" class="form-label text-center d-block mb-3">Select Translation Language</label>
-            <select class="form-select glass-card p-3" id="languageSelect" name="language" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white;">
+            <label for="languageSelect" class="form-label text-center d-block mb-3">
+                Select Translation Language
+            </label>
+            <select class="form-select glass-card p-3"
+                    id="languageSelect"
+                    name="language"
+                    style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white;">
                 <option value="hi" selected>Hindi</option>
                 <option value="te">Telugu</option>
                 <option value="fr">French</option>
@@ -38,15 +41,16 @@
             <button type="button" onclick="uploadImage()" class="btn btn-lg glow-btn px-5">
                 Generate AI Caption
             </button>
+
             <div class="progress mt-3 d-none" id="progressBar">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     role="progressbar"
+                     style="width: 0%"></div>
             </div>
         </div>
-
     </form>
 </div>
 
-<!-- Results Section -->
 <div class="glass-card mt-5 p-4 result-box d-none" id="resultSection">
     <div class="text-center mb-4">
         <img id="resultImage" class="img-fluid rounded" style="max-height: 300px;" />
@@ -61,8 +65,9 @@
     <audio id="audioPlayer" controls class="w-100 mt-4 custom-audio"></audio>
 
     <div class="mt-3 text-center">
-        <button onclick="downloadAudio()" class="btn btn-outline-info btn-sm me-2">Download Audio</button>
-        <button onclick="shareCaption()" class="btn btn-outline-success btn-sm">Share Caption</button>
+        <button onclick="downloadAudio()" class="btn btn-outline-info btn-sm me-2">
+            Download Audio
+        </button>
     </div>
 </div>
 
@@ -70,9 +75,7 @@
 let dropZone = document.getElementById('dropZone');
 let fileInput = document.getElementById('fileInput');
 
-dropZone.addEventListener("click", function(){
-    fileInput.click();
-});
+dropZone.addEventListener("click", () => fileInput.click());
 
 fileInput.addEventListener('change', function() {
     let file = this.files[0];
@@ -86,28 +89,29 @@ fileInput.addEventListener('change', function() {
     }
 });
 
-dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-});
-
-dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('dragover');
-});
-
-dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    let files = e.dataTransfer.files;
-    if (files.length) {
-        fileInput.files = files;
-        fileInput.dispatchEvent(new Event('change'));
+// ----------------------
+// CSRF COOKIE FIX
+// ----------------------
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
-});
+    return cookieValue;
+}
+// ----------------------
 
 function uploadImage() {
     let formData = new FormData(document.getElementById("uploadForm"));
     let file = fileInput.files[0];
+
     if (!file) {
         alert('Please select an image first.');
         return;
@@ -124,57 +128,32 @@ function uploadImage() {
 
     document.getElementById("resultSection").classList.remove("d-none");
 
-    // Show skeleton
-    document.getElementById("caption").innerHTML = '<span class="skeleton skeleton-text w-100 d-inline-block"></span>';
-    document.getElementById("translation").innerHTML = '<span class="skeleton skeleton-text w-75 d-inline-block"></span>';
-
-    // Set result image
     let reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('resultImage').src = e.target.result;
-    }
+    reader.onload = e => document.getElementById('resultImage').src = e.target.result;
     reader.readAsDataURL(file);
-
-    // Simulate progress
-    let progressInterval = setInterval(() => {
-        let width = parseInt(progress.style.width);
-        if (width < 90) {
-            progress.style.width = (width + 10) + '%';
-        }
-    }, 200);
 
     fetch("/generate/", {
         method: "POST",
         body: formData,
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': getCookie('csrftoken')   // 🔴 PRODUCTION FIX
         }
     })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
-        clearInterval(progressInterval);
         progress.style.width = '100%';
-        setTimeout(() => {
-            progressBar.classList.add('d-none');
-            document.getElementById("caption").innerText = data.caption;
-            document.getElementById("translation").innerText = data.translation;
-            document.getElementById("audioPlayer").src = data.audio_url;
-            btn.innerHTML = 'Generate AI Caption';
-            btn.disabled = false;
-        }, 500);
-    })
-    .catch(err => {
-        clearInterval(progressInterval);
-        progressBar.classList.add('d-none');
-        console.error('Upload error:', err);
-        alert('Error processing image: ' + err.message);
+        document.getElementById("caption").innerText = data.caption;
+        document.getElementById("translation").innerText = data.translation;
+        document.getElementById("audioPlayer").src = data.audio_url;
         btn.innerHTML = 'Generate AI Caption';
         btn.disabled = false;
+        progressBar.classList.add('d-none');
+    })
+    .catch(err => {
+        alert('Error: ' + err.message);
+        btn.innerHTML = 'Generate AI Caption';
+        btn.disabled = false;
+        progressBar.classList.add('d-none');
     });
 }
 
@@ -185,19 +164,6 @@ function downloadAudio() {
         a.href = audio.src;
         a.download = 'caption_audio.mp3';
         a.click();
-    } else {
-        alert('No audio available to download.');
-    }
-}
-
-function shareCaption() {
-    let caption = document.getElementById('caption').innerText;
-    let translation = document.getElementById('translation').innerText;
-    let text = `Caption: ${caption}\nTranslation: ${translation}`;
-    if (navigator.share) {
-        navigator.share({ title: 'AI Generated Caption', text: text });
-    } else {
-        navigator.clipboard.writeText(text).then(() => alert('Caption copied to clipboard!'));
     }
 }
 </script>
