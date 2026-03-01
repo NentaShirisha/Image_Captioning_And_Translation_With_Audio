@@ -48,69 +48,90 @@ def profile(request):
 def generate_caption_view(request):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
-    
+
     if request.method == 'POST':
         image = request.FILES.get('image')
         language = request.POST.get('language', 'en')
-        
+
         if image:
-            # Save image
-            image_path = default_storage.save(f'uploads/{image.name}', image)
-            full_path = os.path.join('media', image_path)
-            
             try:
-                # Process synchronously for now (can be made async with Celery)
+                # Save uploaded image
+                image_path = default_storage.save(f'uploads/{image.name}', image)
+                full_path = os.path.join('media', image_path)
+
+                # 🔴 CPU-safe caption generation
                 caption = generate_caption(full_path)
+
+                if not caption:
+                    raise Exception("Caption generation failed")
+
+                # Translation fallback safety
                 translated = translate_text(caption, language)
+                if not translated:
+                    translated = caption
+
+                # Audio generation
                 audio_path = text_to_speech(translated, language)
-                
-                # Save to DB only if user is authenticated
-                if request.user.is_authenticated:
-                    history = CaptionHistory.objects.create(
-                        user=request.user,
-                        image=image_path,
-                        caption=caption,
-                        language=language,
-                        translated_text=translated,
-                        audio_file=audio_path
-                    )
-                
+
+                # Save history
+                history = CaptionHistory.objects.create(
+                    user=request.user,
+                    image=image_path,
+                    caption=caption,
+                    language=language,
+                    translated_text=translated,
+                    audio_file=audio_path
+                )
+
                 return JsonResponse({
                     'caption': caption,
                     'translation': translated,
                     'audio_url': f'/media/{audio_path}',
                     'image_url': f'/media/{image_path}'
                 })
+
             except Exception as e:
+                print("Caption Error:", str(e))
                 return JsonResponse({'error': str(e)}, status=500)
-    
-    return JsonResponse({'error': 'Invalid request'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 class CaptionAPI(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         image = request.FILES.get('image')
         language = request.data.get('language', 'en')
-        
+
         if image:
-            image_path = default_storage.save(f'uploads/{image.name}', image)
-            full_path = os.path.join('media', image_path)
-            
-            caption = generate_caption(full_path)
-            translated = translate_text(caption, language)
-            audio_path = text_to_speech(translated, language)
-            
-            history = CaptionHistory.objects.create(
-                user=request.user,
-                image=image_path,
-                caption=caption,
-                language=language,
-                translated_text=translated,
-                audio_file=audio_path
-            )
-            
-            serializer = CaptionHistorySerializer(history)
-            return Response(serializer.data)
-        
+            try:
+                image_path = default_storage.save(f'uploads/{image.name}', image)
+                full_path = os.path.join('media', image_path)
+
+                caption = generate_caption(full_path)
+                if not caption:
+                    raise Exception("Caption generation failed")
+
+                translated = translate_text(caption, language)
+                if not translated:
+                    translated = caption
+
+                audio_path = text_to_speech(translated, language)
+
+                history = CaptionHistory.objects.create(
+                    user=request.user,
+                    image=image_path,
+                    caption=caption,
+                    language=language,
+                    translated_text=translated,
+                    audio_file=audio_path
+                )
+
+                serializer = CaptionHistorySerializer(history)
+                return Response(serializer.data)
+
+            except Exception as e:
+                print("API Caption Error:", str(e))
+                return Response({'error': str(e)}, status=500)
+
         return Response({'error': 'No image provided'}, status=400)
