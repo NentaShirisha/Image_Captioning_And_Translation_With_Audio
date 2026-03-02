@@ -12,7 +12,8 @@ ALLOWED_HOSTS = [
     "image-captioning-and-translation-with.onrender.com",
     ".onrender.com",
     "localhost",
-    "127.0.0.1"
+    "127.0.0.1",
+    '*'
 ]
 
 # -------------------------------
@@ -110,6 +111,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+DEBUG = True
 # -------------------------------
 # MEDIA FILES
 # -------------------------------
@@ -130,3 +132,4 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
